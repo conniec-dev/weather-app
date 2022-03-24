@@ -1,37 +1,37 @@
-import React, { useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { DayForecast } from "./DayForecast/DayForecast.js";
-import { GetData } from "./GetData.js";
-import logo from './logo.svg';
+import { WEATHER_APP_ID } from "./constants.js";
 import './App.css';
 
 const api_url =
-	"https://api.openweathermap.org/data/2.5/weather?zip=050022,CO&units=metric&appid=1cda4e7ec4878b0bfaa93961d1294169";
+		`https://api.openweathermap.org/data/2.5/weather?zip=050022,CO&units=metric&appid=1cda4e7ec4878b0bfaa93961d1294169`;
 
-
-// const fakeData = {
-//   day: "Mon",
-// //   tempMax: 24,
-// //   tempMin: 20,
-// };
+const DAYS_OF_WEEK = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 function App() {
-  const [day, setDay] = React.useState(0);
-  const [image, setImage] = React.useState("");
-  const [tempMax, setTempMax] = React.useState(0);
-  const [tempMin, setTempMin] = React.useState(0);
+  console.log("App rendering")
+  const [day, setDay] = useState(0);
+  const [image, setImage] = useState("");
+  const [tempMax, setTempMax] = useState(0);
+  const [tempMin, setTempMin] = useState(0);
 
-  GetData(api_url).then(data => {
-    setDay(data.dt)
-    const a = new Date(day*1000);
-    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    setDay(days[a.getDay()])
+  const getWeatherData = useCallback(async() => {
+    const response = await fetch(api_url)
+    const data = await response.json()
+
+    const timestampInSeconds = data.dt
+    const date = new Date(timestampInSeconds * 1000);
+    const dayOfWeek = DAYS_OF_WEEK[date.getDay()]
+    setDay(dayOfWeek)
+
     setImage(data.weather[0].icon)
     setTempMax(Math.ceil(data.main.temp_max))
     setTempMin(Math.floor(data.main.temp_min))
-  })
+  }, [])
 
-
-  
+  useEffect(() => {
+    getWeatherData()
+  }, [getWeatherData])
 
   return (
     <div className="App">

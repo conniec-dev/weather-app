@@ -24,7 +24,6 @@ import "./DayForecast.css";
 
 function DayForecast(props) {
     return (
-    <div className="dayforecast__container">
       <div className="dayforecast">
         <div>{props.day}</div>
         <img src={props.image} alt="cloud" />
@@ -33,7 +32,6 @@ function DayForecast(props) {
           <div>{props.tempMin}</div>
         </div>
       </div>
-    </div>
     )
 }
 

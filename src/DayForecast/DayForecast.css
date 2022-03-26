@@ -1,4 +1,4 @@
-.dayforecast__container {
+/* .dayforecast__container {
     border: 1px solid red;
     background-color: rgb(55, 55, 55);
     display: flex;
@@ -7,7 +7,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
-}
+} */
 
 .dayforecast {
     border: 1px solid blue;

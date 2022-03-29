@@ -1,14 +1,15 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { DayForecast } from "./DayForecast/DayForecast.js";
 import { WEATHER_APP_ID } from "./constants.js";
+import moment from "moment-timezone";
 import './App.css';
 
 const MED_ID = 1699896
 
 const api_url_five_days = `https://api.openweathermap.org/data/2.5/forecast?id=${MED_ID}&appid=1cda4e7ec4878b0bfaa93961d1294169&units=metric&mode=json`
 
-const api_url =
-		`https://api.openweathermap.org/data/2.5/weather?zip=050022,CO&units=metric&appid=1cda4e7ec4878b0bfaa93961d1294169`;
+// const api_url =
+// 		`https://api.openweathermap.org/data/2.5/weather?zip=050022,CO&units=metric&appid=1cda4e7ec4878b0bfaa93961d1294169`;
 
 
 const DAYS_OF_WEEK = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -23,11 +24,31 @@ const groupBy = function(xs, key) {
 const valmap = (obj, f) => {
   let newObject = {}
   for (const property in obj) {
-    console.log("property: ", property)
     // newObject[property] = obj[property][0]
     newObject[property] = f(obj[property])
   }
   return newObject
+}
+
+const getFirstElementOfList = (l) => {
+  return l[0]
+}
+
+const getLastElementOfList = (l) => {
+  return l[l.length-1]
+}
+
+const addProp = (obj) => {
+  const { dt: timestamp } = obj
+  // console.log("addProp > timestamp: ", timestamp)
+  const timestampinMiliseconds = timestamp * 1000;
+  const timestampWithLocalTimezone = moment(timestampinMiliseconds).format("YYYY-MM-DD")
+  // console.log("timestampWithLocalTimezone", timestampWithLocalTimezone)
+  const newObj = {
+    ...obj,
+    timestampWithLocalTimezone,
+  };
+  return newObj
 }
 
 function App() {
@@ -74,43 +95,17 @@ function App() {
       //5-Day Forecast
       const response = await fetch(api_url_five_days)
       const data = await response.json()
-      const copiedList = JSON.parse(JSON.stringify(data.list))
-      for (let i = 0; i < copiedList.length; i++) {
-        copiedList[i].dt_txt = copiedList[i].dt_txt.split(" ", 2)[0]}
+      console.log("data: ", data);
+
+      const newList = data.list.map(addProp)
+      console.log("new List: ", newList)
       
-      const groupedObject = groupBy(copiedList, "dt_txt")
+      const groupedObject = groupBy(newList, "timestampWithLocalTimezone")
       console.log("GROUPED OBJ: ", groupedObject)
-      const newObject = valmap(groupedObject, val => val[0])
+      const newObject = valmap(groupedObject, getLastElementOfList)
       console.log("New object: ", newObject)
       const dataList = Object.values(newObject)
-      console.log("values: ", dataList)
-      // for (let i = 0; i < data.list.length; i++) {
-      //   console.log("Date: ", data.list[i].dt_txt.split(" ", 2)[0])
-      // }
-      // for (let element in data.list.length) {
-      //   console.log("List: ", data.list)
-      // }
-
-      // const [dateDataList, setdateDataList] = data.list
       
-
-      // for (let i = 0; i < data.list.length; i++) {
-      //   const dayDate = data.list[i].dt_txt.split(" ", 2)[0];
-      //    data.list[i].dt_txt = dayDate
-      //   setDataList(dayDate)
-      // }
-
-      
-      // console.log("5D-DATA: ", data)
-      // console.log("list: ", data.list)
-      //Way to get the date of each element of the list
-      // console.log(data.list[i].dt_txt.split(" ", 2)[0])
-
-      //Way to calculate time by day
-      const timestampInSeconds = data.dt
-      const date = new Date(timestampInSeconds * 1000);
-      const dayOfWeek = DAYS_OF_WEEK[date.getDay()]
-
       //Way to calculate time for 5 days
       const dayOfWeekList = []
       for (let element in dataList) {
@@ -118,9 +113,9 @@ function App() {
         const dateList = new Date(timestampInSecondsList * 1000);
         dayOfWeekList.push(DAYS_OF_WEEK[dateList.getDay()])
       }
-      console.log("dayOfWeeList: ", dayOfWeekList)
+      console.log("dayOfWeekList: ", dayOfWeekList)
 
-      console.log("DataList: ", dataList[0].weather[0].icon)
+      
 
       setWeatherData({
         day: dayOfWeekList[0],

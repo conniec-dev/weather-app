@@ -13,13 +13,14 @@
     border: 1px solid blue;
     background-color: rgb(255, 255, 255);
     display: flex;
-    width: 10%;
     flex-direction: column;
     align-items: center;
+    font-family: "Sora", sans-serif;
 }
 
 .temps {
     display: flex;
     width: 40%;
     justify-content: space-around;
+    font-family: "Sora", sans-serif;
 }

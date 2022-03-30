@@ -1,0 +1,40 @@
+San Francisco
+1689969
+Amsterdam
+2759794
+Manchester
+2643123
+Copenhague
+2618425
+New York
+5128581
+Montreal
+6077243
+Prague
+3067696
+Tel Aviv
+293396
+Medellin
+3674962
+Tokyo
+1850147
+Los Angeles
+5368361
+Chicago
+4887398
+Londres
+2643743
+Barcelona
+3128760
+Melbourne
+4163971
+Sidney
+2147714
+Shanghái
+1796236
+Madrid
+3117735
+Mexico City
+3530597
+Hong Kong
+1819729

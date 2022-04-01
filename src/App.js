@@ -1,12 +1,12 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { DayForecast } from "./DayForecast/DayForecast.js";
-import { WEATHER_APP_ID } from "./constants.js";
+// import { WEATHER_APP_ID } from "./constants.js";
 import moment from "moment-timezone";
 import './App.css';
 
 const MED_ID = 3674962
 
-const api_url_five_days = `https://api.openweathermap.org/data/2.5/forecast?id=${MED_ID}&appid=1cda4e7ec4878b0bfaa93961d1294169&units=metric&mode=json`
+// const api_url_five_days = `https://api.openweathermap.org/data/2.5/forecast?id=${MED_ID}&appid=1cda4e7ec4878b0bfaa93961d1294169&units=metric&mode=json`
 
 // const api_url =
 // 		`https://api.openweathermap.org/data/2.5/weather?zip=050022,CO&units=metric&appid=1cda4e7ec4878b0bfaa93961d1294169`;
@@ -30,9 +30,9 @@ const valmap = (obj, f) => {
   return newObject
 }
 
-const getFirstElementOfList = (l) => {
-  return l[0]
-}
+// const getFirstElementOfList = (l) => {
+//   return l[0]
+// }
 
 const getLastElementOfList = (l) => {
   return l[l.length-1]
@@ -49,21 +49,66 @@ const getDateWithLocalTimezone = (obj) => {
   return newObj
 }
 
+const generateCitiesLookup = (array) => {
+  const newObject = {}
+  for (let i in array) {
+    newObject[array[i].id] = array[i].name
+  }
+  return newObject
+}
+
+function getPosition() {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        resolve(position)
+      });
+    } else {
+      reject("No navigator.geolocation available")
+    }
+  },)
+}
+
+
 function App() {
+
   console.log("App rendering")
+  const [selectedCityID, setSelectedCityID] = useState(null)
   const [weatherData, setWeatherData] = useState([])
+  const [position, setPosition] = useState({})
   // const [day, setDay] = useState(0);
   // const [image, setImage] = useState("");
   // const [tempMax, setTempMax] = useState(0);
   // const [tempMin, setTempMin] = useState(0);
+
+  const getCurrentPosition = useCallback(async () => {
+    const location = await getPosition();
+    console.log("App > getCurrentPosition > location > latitude: ", location.coords.latitude)
+    const latitude = location.coords.latitude
+    const longitude = location.coords.longitude
+    
+    const api_url_location = `http://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=5&appid=1cda4e7ec4878b0bfaa93961d1294169`
+    const response = await fetch(api_url_location)
+    const data = await response.json()
+    console.log("getCurrentPosition > data: ", data)
+  
+  }, [])
+
+  useEffect(() => {
+    getCurrentPosition()
+  }, [getCurrentPosition])
 
   const getWeatherData = useCallback(async() => {
     try {
       //Day Forecast
       // const response = await fetch(api_url)
       //5-Day Forecast
+      const api_url_five_days = `https://api.openweathermap.org/data/2.5/forecast?id=${selectedCityID}&appid=1cda4e7ec4878b0bfaa93961d1294169&units=metric&mode=json`
+      // const api_url_location = `http://api.openweathermap.org/geo/1.0/reverse?lat=51.5098&lon=-0.1180&limit=5&appid=1cda4e7ec4878b0bfaa93961d1294169`
+      
       const response = await fetch(api_url_five_days)
       const data = await response.json()
+      console.log("data: ", data)
       const newList = data.list.map(getDateWithLocalTimezone)
       
       const groupedObject = groupBy(newList, "dateWithLocalTimezone")
@@ -83,36 +128,39 @@ function App() {
     catch (error) {
       console.error(error)
     }
-  }, [])
+  }, [selectedCityID])
 
   useEffect(() => {
     getWeatherData()
   }, [getWeatherData])
 
-  const jsonData = require("./cities_list.json")
+  const citiesData = require("./cities_list.json")
+  
 
+  const onCityIDChange = (event) => {
+    console.log("event.target.value: ", event.target.value)
+    setSelectedCityID(event.target.value)
+  }
+  const lookup = generateCitiesLookup(citiesData)
+  const cityName = lookup[selectedCityID]
+  console.log("city Name: ", cityName)
 
   return (
     <div className="App">
       <div className="city__selector">
         <div className="city__selector__container">
-        <label for="cities" className="label__text">Choose a city: </label>
-          <select name="cities" id="cities" className="selector">
-            {jsonData.map((e, i) => (
-              <option value="city">{e.name}</option>
+        <label htmlFor="cities" className="label__text">Choose a city: </label>
+          <select name="cities" id="cities" className="selector" onChange={onCityIDChange}>
+            {citiesData.map((e, i) => (
+              <option key={i} value={e.id}>{e.name}</option>
             ))}
           </select>
           <br></br>
-          <div className="button">
-	          <div className="container">
-              send
-	          </div>
-          </div>
         </div>
       </div>
       <div className="city__name">
         <div className="city__name__container">
-          Medellin
+          {cityName}
         </div>
       </div>
       <div className="dayforecast__container">

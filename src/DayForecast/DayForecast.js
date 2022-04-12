@@ -19,8 +19,6 @@ import "./DayForecast.css";
 
 // getapi(api_url);
 
-// "http://openweathermap.org/img/wn/10d@2x.png"
-
 
 function DayForecast(props) {
     return (

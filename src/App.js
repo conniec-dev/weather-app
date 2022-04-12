@@ -57,6 +57,15 @@ const generateCitiesLookup = (array) => {
   return newObject
 }
 
+const getFormattedCityName = (array) => {
+  const newObject = {}
+  for (let i in array) {
+    newObject[array[i].id] = array[i].name.normalize("NFD").replace(/[/. \u0300-\u036f]/g, "").toLowerCase();
+  }
+  return newObject
+  
+}
+
 function getPosition() {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
@@ -69,21 +78,32 @@ function getPosition() {
   },)
 }
 
+function getKeyByValue(object, value) {
+  for (var prop in object) {
+      if (object.hasOwnProperty(prop)) {
+          if (object[prop] === value)
+          return prop;
+      }
+  }
+}
+
+let formattedResponseCityName = "";
+
 
 function App() {
 
   console.log("App rendering")
   const [selectedCityID, setSelectedCityID] = useState(null)
   const [weatherData, setWeatherData] = useState([])
-  const [position, setPosition] = useState({})
   // const [day, setDay] = useState(0);
   // const [image, setImage] = useState("");
   // const [tempMax, setTempMax] = useState(0);
   // const [tempMin, setTempMin] = useState(0);
 
+  const citiesData = require("./cities_list.json")
+
   const getCurrentPosition = useCallback(async () => {
     const location = await getPosition();
-    console.log("App > getCurrentPosition > location > latitude: ", location.coords.latitude)
     const latitude = location.coords.latitude
     const longitude = location.coords.longitude
     
@@ -91,8 +111,14 @@ function App() {
     const response = await fetch(api_url_location)
     const data = await response.json()
     console.log("getCurrentPosition > data: ", data)
-  
-  }, [])
+    
+    formattedResponseCityName = data[0].local_names.en.normalize("NFD").replace(/[/. \u0300-\u036f]/g, "").toLowerCase();
+
+    const newCitiesObj = getFormattedCityName(citiesData)
+    setSelectedCityID(getKeyByValue(newCitiesObj, formattedResponseCityName))
+
+  }, [citiesData])
+
 
   useEffect(() => {
     getCurrentPosition()
@@ -134,8 +160,6 @@ function App() {
     getWeatherData()
   }, [getWeatherData])
 
-  const citiesData = require("./cities_list.json")
-  
 
   const onCityIDChange = (event) => {
     console.log("event.target.value: ", event.target.value)
@@ -145,12 +169,15 @@ function App() {
   const cityName = lookup[selectedCityID]
   console.log("city Name: ", cityName)
 
+  console.log("Formatted cities: ", getFormattedCityName(citiesData))
+
+
   return (
     <div className="App">
       <div className="city__selector">
         <div className="city__selector__container">
         <label htmlFor="cities" className="label__text">Choose a city: </label>
-          <select name="cities" id="cities" className="selector" onChange={onCityIDChange}>
+          <select name="cities" id="cities" className="selector" value={selectedCityID} onChange={onCityIDChange}>
             {citiesData.map((e, i) => (
               <option key={i} value={e.id}>{e.name}</option>
             ))}
@@ -169,8 +196,8 @@ function App() {
             key={i}
             day={e.day}
             image={`http://openweathermap.org/img/wn/${e.image}@2x.png`}
-            tempMax={e.tempMax}
-            tempMin={e.tempMin}
+            tempMax={`H:${e.tempMax}º`}
+            tempMin={`L:${e.tempMin}º`}
           />
         ))}
       </div>
